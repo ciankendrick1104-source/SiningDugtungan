@@ -285,7 +285,7 @@
             <input type="range" id="lineWidth" min="1" max="10" value="2" aria-label="Adjust line width">
             <button id="eraseBtn">Erase</button>
         </span>
-        <button id="resetRelayBtn"type="button">Reset Relay</button>
+        <button id="resetRelayBtn" type="button">Reset Relay</button>
     </div>
       <p id="drawPrompt">Draw anything that wanders in your mind</p>
       <!--Drawing Area-->
@@ -305,6 +305,8 @@
 
     <!--JavaScript for Drawing-->
     <script>
+        const RELAY_DB_URL = 'https://sining-dugtungan-default-rtdb.firebaseio.com/relay.json';
+
         const canvas = document.getElementById('sketchPad');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
@@ -388,7 +390,6 @@
         const uploadBox = document.getElementById('uploadBox');
         const uploadBoxText = document.getElementById('uploadBoxText');
         const uploadPreview = document.getElementById('uploadPreview');
-        const savedSketch = localStorage.getItem('Drawing');
         const clearBtn = document.getElementById('clearBtn');
         const imageUpload = document.getElementById('imageUpload');
         const colorPicker = document.getElementById('colorPicker');
@@ -402,7 +403,32 @@
         const funDisclaimer = document.getElementById('funDisclaimer');
         let isErasing = false;
         let currentMode = 'sketch';
-        let relayCount = parseInt(localStorage.getItem('relayCount')) || 1;
+        let relayCount = 1;
+        let currentSharedDrawing = '';
+
+        function enterRelayScreen() {
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
+            if (guideBox) {
+                guideBox.classList.add('compact-guide');
+                guideBox.style.display = 'block';
+            }
+            if (relayContent) {
+                relayContent.style.display = 'block';
+                relayContent.querySelectorAll('p.main-title, p.submain-title').forEach((el) => {
+                    if (el.id !== 'strangerLabel') {
+                        el.remove();
+                    }
+                });
+            }
+            if (drawPrompt) {
+                drawPrompt.style.display = 'none';
+            }
+            if (funDisclaimer) {
+                funDisclaimer.style.display = 'block';
+            }
+        }
 
         function setInputMode(mode) {
             currentMode = mode;
@@ -450,7 +476,7 @@
         }
 
         function syncRelayView() {
-            const hasPreviousSketch = Boolean(localStorage.getItem('Drawing'));
+            const hasPreviousSketch = Boolean(currentSharedDrawing);
             if (drawPrompt) {
                 drawPrompt.style.display = hasPreviousSketch ? 'none' : 'block';
             }
@@ -462,38 +488,75 @@
             }
         }
 
+        function applyRelayState(data) {
+            if (data && data.drawing) {
+                currentSharedDrawing = data.drawing;
+                if (prevSketch && prevSketchBox) {
+                    prevSketch.src = data.drawing;
+                    prevSketch.style.display = 'block';
+                    prevSketchBox.style.display = 'block';
+                }
+                enterRelayScreen();
+            } else {
+                currentSharedDrawing = '';
+                if (prevSketch && prevSketchBox) {
+                    prevSketch.src = '';
+                    prevSketch.style.display = 'none';
+                    prevSketchBox.style.display = 'none';
+                }
+            }
+
+            relayCount = (data && typeof data.relayCount === 'number') ? data.relayCount : 1;
+            updateRelayStep();
+            syncRelayView();
+        }
+
+        async function loadSharedRelay() {
+            try {
+                const res = await fetch(RELAY_DB_URL);
+                if (res.ok) {
+                    const data = await res.json();
+                    applyRelayState(data);
+                }
+            } catch (err) {
+                console.error('Could not load shared relay:', err);
+            }
+        }
+
+        async function saveSharedRelay(drawingData, nextCount) {
+            const res = await fetch(RELAY_DB_URL, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    drawing: drawingData,
+                    relayCount: nextCount
+                })
+            });
+            if (!res.ok) {
+                throw new Error('Failed to save to Firebase');
+            }
+        }
+
+        async function clearSharedRelay() {
+            try {
+                await fetch(RELAY_DB_URL, { method: 'DELETE' });
+            } catch (err) {
+                console.error('Could not reset shared relay:', err);
+            }
+        }
+
         updateRelayStep();
         setInputMode('sketch');
+        loadSharedRelay();
 
         enterBtn.addEventListener('click', () => {
-            if (welcomeScreen) {
-                welcomeScreen.style.display = 'none';
-            }
-            if (guideBox) {
-                guideBox.classList.add('compact-guide');
-                guideBox.style.display = 'block';
-            }
-            if (relayContent) {
-                relayContent.style.display = 'block';
-                relayContent.querySelectorAll('p.main-title, p.submain-title').forEach((el) => {
-                    if (el.id !== 'strangerLabel') {
-                        el.remove();
-                    }
-                });
-            }
-            if (drawPrompt) {
-                drawPrompt.style.display = 'none';
-            }
-            if (funDisclaimer) {
-                funDisclaimer.style.display = 'block';
-            }
+            enterRelayScreen();
         });
 
-        resetRelayBtn.addEventListener('click', () => {
-            localStorage.removeItem('Note');
-            localStorage.removeItem('Drawing');
+        resetRelayBtn.addEventListener('click', async () => {
+            await clearSharedRelay();
+            currentSharedDrawing = '';
             relayCount = 1;
-            localStorage.removeItem('relayCount');
             updateRelayStep();
 
             if (prevSketch && prevSketchBox) {
@@ -640,51 +703,60 @@
             }
         });
 
-
-        if (savedSketch && prevSketch && prevSketchBox) {
-            prevSketch.src = savedSketch;
-            prevSketch.style.display = 'block';
-            prevSketchBox.style.display = 'block';
-        } else if (prevSketchBox) {
-            prevSketchBox.style.display = 'none';
-        }
-
-        syncRelayView();
-
 // Run when Submit is clicked
-        submitBtn.addEventListener('click', () => {
+        submitBtn.addEventListener('click', async () => {
             if (!hasDrawn) {
                 alert('Please draw something on the canvas before submitting.');
                 return;
             }
 
-            // Save the drawing
-            const drawingData = canvas.toDataURL();
-            localStorage.setItem('Drawing', drawingData);
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
 
-            relayCount += 1;
-            localStorage.setItem('relayCount', String(relayCount));
-            updateRelayStep();
+            try {
+                // Save the drawing on a white background so transparent strokes render cleanly
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.fillStyle = '#ffffff';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                tempCtx.drawImage(canvas, 0, 0);
+                const drawingData = tempCanvas.toDataURL('image/jpeg', 0.8);
 
-            if (prevSketch && prevSketchBox) {
-                prevSketch.src = drawingData;
-                prevSketch.style.display = 'block';
-                prevSketchBox.style.display = 'block';
-            }
+                const nextCount = relayCount + 1;
+                await saveSharedRelay(drawingData, nextCount);
 
-            syncRelayView();
+                currentSharedDrawing = drawingData;
+                relayCount = nextCount;
+                updateRelayStep();
 
-            console.log('Drawing Data URL:', drawingData);
-            alert('Your drawing has been submitted!');
+                if (prevSketch && prevSketchBox) {
+                    prevSketch.src = drawingData;
+                    prevSketch.style.display = 'block';
+                    prevSketchBox.style.display = 'block';
+                }
 
-            // Clear the canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            strokeHistory.length = 0;
-            hasDrawn = false;
-            resetUploadVisual();
-            setInputMode('sketch');
-            if (sketchHint) {
-                sketchHint.style.display = 'block';
+                syncRelayView();
+
+                console.log('Drawing Data URL:', drawingData);
+                alert('Your drawing has been submitted!');
+
+                // Clear the canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                strokeHistory.length = 0;
+                hasDrawn = false;
+                resetUploadVisual();
+                setInputMode('sketch');
+                if (sketchHint) {
+                    sketchHint.style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Could not submit right now. Make sure your Firebase Realtime Database rules allow read and write.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit';
             }
         });
 
