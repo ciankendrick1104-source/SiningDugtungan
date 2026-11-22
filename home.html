@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Arts 1 Project</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {
+      color: rgb(0, 0, 0);
+      font-family: 'Comic Sans MS', 'Comic', Times, serif;
+      font-size: 20px;
+      background-color: rgb(229, 221, 216);
+      max-width:600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    /* Heading 1 */
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 4px;
+      margin-top: 4px;
+    }
+
+    /* Welcome! */
+    p.main-title {
+        font-size: 2rem;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+
+    /* You are the first one to join! */
+    p.submain-title {
+        font-size: 1.5rem;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        text-align: center;
+    }
+
+    p {
+        font-size: 1rem;
+        margin-bottom: 5px;
+        margin-top: 5px;
+        text-align: center;
+    }
+
+    li {
+        font-size: 1rem;
+        margin-bottom: 10px;
+        text-align: left;
+    }
+
+    /* Submit Button */
+    #submitBtn {
+        background-color: rgb(255, 255, 255);
+        color: rgb(22, 138, 35);
+        border: none;
+        padding: 10px 20px;
+        font-family: inherit;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    /*Drawing Area*/
+    #sketchPad {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        background-color: rgb(255, 255, 255);
+        border: 2px solid #000000;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        cursor: crosshair;
+        touch-action: none; /* Prevent touch scrolling on mobile devices */
+        border-radius: 10px;
+    }
+
+    #sketchPadWrapper {
+        position: relative;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    #sketchHint {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: rgba(0, 0, 0, 0.35);
+        font-size: 1.2rem;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    #uploadBox {
+        display: none;
+        width: 100%;
+        min-height: 400px;
+        box-sizing: border-box;
+        background-color: rgb(255, 255, 255);
+        border: 2px dashed #000000;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        padding: 20px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    #uploadBoxText {
+        font-size: 1.2rem;
+        color: rgba(0, 0, 0, 0.55);
+        margin-top: 160px;
+    }
+
+    #uploadPreview {
+        display: none;
+        max-width: 100%;
+        max-height: 320px;
+        margin: 10px auto 0 auto;
+        border-radius: 8px;
+    }
+
+    #funDisclaimer {
+        font-size: 0.75rem;
+        color: rgba(0, 0, 0, 0.65);
+        margin-top: 6px;
+        margin-bottom: 14px;
+        font-family: Times New Roman, Times, serif;
+    }
+
+    #headerBox {
+        border: 2px solid #000;
+        padding: 10px;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        border-radius: 30px;
+        background-color: rgb(255, 255, 255);
+        border-radius: 10px;
+    }
+
+    #welcomeScreen {
+        border: 2px solid #000;
+        padding: 14px;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        background-color: rgb(255, 255, 255);
+        border-radius: 10px;
+    }
+
+    #guideBox {
+        border: 2px solid #000;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        background-color: rgb(255, 255, 255);
+        border-radius: 10px;
+        box-sizing: border-box;
+    }
+
+    #guideBox ul {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    #guideBox.compact-guide li {
+        font-size: 0.80rem;
+        margin-bottom: 6px;
+    }
+
+    #tools {
+        border: 2px solid #000;
+        padding: 10px;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        border-radius: 30px;
+        background-color: rgb(255, 255, 255);
+    }
+
+    .modeSwitch {
+        display: inline-flex;
+        align-items: center;
+        background-color: rgb(243, 241, 234);
+        border: 1px solid rgba(0, 0, 0, 0.14);
+        border-radius: 12px;
+        padding: 3px;
+        margin: 4px 6px;
+        vertical-align: middle;
+    }
+
+    .modeSwitchBtn {
+        background: transparent;
+        color: rgba(0, 0, 0, 0.55);
+        border: none;
+        border-radius: 9px;
+        padding: 5px 12px;
+        font-family: inherit;
+        font-size: 0.82rem;
+        cursor: pointer;
+    }
+
+    .modeSwitchBtn.active {
+        background-color: rgb(255, 255, 255);
+        color: rgb(0, 0, 0);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+
+    #prevSketchBox {
+        border: 2px solid #000;
+        padding: 18px;
+        min-height: 260px;
+        margin-bottom: 14px;
+        margin-top: 14px;
+        border-radius: 20px;
+        background-color: rgb(255, 255, 255);
+        box-sizing: border-box;
+    }
+
+    #strangerLabelBox {
+        border: 2px dashed #000;
+        padding: 8px 14px;
+        margin-top: 0;
+        margin-bottom: 12px;
+        border-radius: 12px;
+        background-color: rgb(255, 255, 255);
+        box-sizing: border-box;
+    }
+
+    #strangerLabelBox #strangerLabel {
+        font-size: 1.00rem;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+
+  </style>
+</head>
+
+<!--Written Texts-->
+<body>
+    <div id="headerBox">
+        <h1>Sining Dugtungan</h1>
+    </div>
+    <div id="welcomeScreen">
+        <p class="main-title">Welcome!</p>
+        <p class="submain-title"> You are the first one to join!</p>
+        <ul>
+            <li>Draw something that represents your current mood.</li>
+            <li>Submit the drawing, they won't know who you are.</li>
+            <li>Let other people create something wonderful out of your drawing!</li>
+        </ul>
+        <button id="enterBtn" type="button">Enter</button>
+    </div>
+
+    <div id="relayContent" style="display: none;">
+
+        <div id="guideBox">
+            <ul>
+                <li>Draw something that represents your current mood</li>
+                <li>Submit the drawing</li>
+                <li>Let other people create something wonderful out of your drawing!</li>
+            </ul>
+        </div>
+
+        <p class="main-title">Welcome to the Relay!</p>
+        <p class="submain-title">Draw something that represents your current mood.</p>
+    <p id="relayStep">Entry #1</p>
+    <!--Sketch of previous participant-->
+    <div id="prevSketchBox" style="display: none;">
+        <div id="strangerLabelBox" style="display: none;">
+            <p id="strangerLabel" class="main-title" style="display: none;">Left by a Stranger Before You</p>
+        </div>
+        <img id="prevSketch" style="display: none; width: 100%;" src="" alt="Previous Sketch">
+    </div>
+        <div id="tools">
+        <!--Text for Submit Button-->
+        <button id="submitBtn">Submit</button>
+        <div class="modeSwitch" role="group" aria-label="Input mode">
+            <button id="modeSketchBtn" class="modeSwitchBtn active" type="button">Draw on Screen</button>
+            <button id="modeUploadBtn" class="modeSwitchBtn" type="button">Upload Paper</button>
+        </div>
+        <span id="sketchTools">
+            <button id="clearBtn">Clear</button>
+            <button id="undoBtn" type="button">Undo</button>
+            <input type="color" id="colorPicker" value="#000000" aria-label="Choose drawing color">
+            <input type="range" id="lineWidth" min="1" max="10" value="2" aria-label="Adjust line width">
+            <button id="eraseBtn">Erase</button>
+        </span>
+        <button id="resetRelayBtn"type="button">Reset Relay</button>
+    </div>
+      <p id="drawPrompt">Draw anything that wanders in your mind</p>
+      <!--Drawing Area-->
+      <div id="sketchPadWrapper">
+          <span id="sketchHint">Sketch here</span>
+          <canvas id="sketchPad" width="500" height="400"></canvas>
+      </div>
+      <!--Upload Area-->
+      <div id="uploadBox" role="button" tabindex="0" aria-label="Click here to upload file">
+          <p id="uploadBoxText">Click here to upload file</p>
+          <img id="uploadPreview" src="" alt="Uploaded Image Preview">
+      </div>
+      <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+      <p id="funDisclaimer" style="display: none;">Anonymous and Non commercialized — just meant for fun.</p>
+
+    </div>
+
+    <!--JavaScript for Drawing-->
+    <script>
+        const canvas = document.getElementById('sketchPad');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let hasDrawn = false;
+
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        // Start drawing
+        canvas.addEventListener('pointerdown', (e) => {
+            isDrawing = true;
+            if (sketchHint) {
+                sketchHint.style.display = 'none';
+            }
+            saveSnapshot(); // Save the current state of the canvas before starting a new stroke
+            const pos = getCanvasCoordinates(e);
+
+            // Draw an immediate dot on touch/click even without pointer movement
+            ctx.save();
+            ctx.fillStyle = isErasing ? '#000000' : ctx.strokeStyle;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, Math.max(ctx.lineWidth / 2, 1), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            hasDrawn = true;
+            canvas.setPointerCapture(e.pointerId); // Capture pointer events for this pointer
+        });
+
+        // Draw on Canvas
+        canvas.addEventListener('pointermove', (e) => {
+            if (isDrawing) {
+                const pos = getCanvasCoordinates(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                hasDrawn = true;
+            }
+        });
+
+        canvas.addEventListener('pointerleave', () => {
+            isDrawing = false;
+        });
+
+        //Stop Drawing when pointer is released
+        canvas.addEventListener('pointerup', (e) => {
+            isDrawing = false;
+            if (canvas.hasPointerCapture(e.pointerId)) {
+                canvas.releasePointerCapture(e.pointerId); // Release pointer capture when drawing stops
+            }
+        });
+
+        // Set the drawing color
+        ctx.strokeStyle = '#000000';
+        ctx.lineCap = 'round';
+        ctx.lineWidth = 2;
+
+        //Note and Button Elements
+        const relayContent = document.getElementById('relayContent');
+        const prevSketchBox = document.getElementById('prevSketchBox');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const guideBox = document.getElementById('guideBox');
+        const enterBtn = document.getElementById('enterBtn');
+        const drawPrompt = document.getElementById('drawPrompt');
+        const strangerLabelBox = document.getElementById('strangerLabelBox');
+        const strangerLabel = document.getElementById('strangerLabel');
+        const prevSketch = document.getElementById('prevSketch');
+        const submitBtn = document.getElementById('submitBtn');
+        const modeSketchBtn = document.getElementById('modeSketchBtn');
+        const modeUploadBtn = document.getElementById('modeUploadBtn');
+        const sketchTools = document.getElementById('sketchTools');
+        const sketchPadWrapper = document.getElementById('sketchPadWrapper');
+        const uploadBox = document.getElementById('uploadBox');
+        const uploadBoxText = document.getElementById('uploadBoxText');
+        const uploadPreview = document.getElementById('uploadPreview');
+        const savedSketch = localStorage.getItem('Drawing');
+        const clearBtn = document.getElementById('clearBtn');
+        const imageUpload = document.getElementById('imageUpload');
+        const colorPicker = document.getElementById('colorPicker');
+        const lineWidth = document.getElementById('lineWidth');
+        const eraseBtn = document.getElementById('eraseBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const strokeHistory = [];
+        const resetRelayBtn = document.getElementById('resetRelayBtn');
+        const relayStep = document.getElementById('relayStep');
+        const sketchHint = document.getElementById('sketchHint');
+        const funDisclaimer = document.getElementById('funDisclaimer');
+        let isErasing = false;
+        let currentMode = 'sketch';
+        let relayCount = parseInt(localStorage.getItem('relayCount')) || 1;
+
+        function setInputMode(mode) {
+            currentMode = mode;
+            const isSketch = mode === 'sketch';
+            if (modeSketchBtn) {
+                modeSketchBtn.classList.toggle('active', isSketch);
+            }
+            if (modeUploadBtn) {
+                modeUploadBtn.classList.toggle('active', !isSketch);
+            }
+            if (sketchTools) {
+                sketchTools.style.display = isSketch ? 'inline' : 'none';
+            }
+            if (sketchPadWrapper) {
+                sketchPadWrapper.style.display = isSketch ? 'block' : 'none';
+            }
+            if (uploadBox) {
+                uploadBox.style.display = isSketch ? 'none' : 'block';
+            }
+        }
+
+        function resetUploadVisual() {
+            if (uploadPreview) {
+                uploadPreview.src = '';
+                uploadPreview.style.display = 'none';
+            }
+            if (uploadBoxText) {
+                uploadBoxText.textContent = 'Click here to upload file';
+                uploadBoxText.style.marginTop = '160px';
+            }
+        }
+
+        modeSketchBtn.addEventListener('click', () => {
+            setInputMode('sketch');
+        });
+
+        modeUploadBtn.addEventListener('click', () => {
+            setInputMode('upload');
+        });
+
+        function updateRelayStep() {
+            if (relayStep) {
+                relayStep.textContent = `Entry #${relayCount}`;
+            }
+        }
+
+        function syncRelayView() {
+            const hasPreviousSketch = Boolean(localStorage.getItem('Drawing'));
+            if (drawPrompt) {
+                drawPrompt.style.display = hasPreviousSketch ? 'none' : 'block';
+            }
+            if (strangerLabelBox) {
+                strangerLabelBox.style.display = hasPreviousSketch ? 'block' : 'none';
+            }
+            if (strangerLabel) {
+                strangerLabel.style.display = hasPreviousSketch ? 'block' : 'none';
+            }
+        }
+
+        updateRelayStep();
+        setInputMode('sketch');
+
+        enterBtn.addEventListener('click', () => {
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
+            if (guideBox) {
+                guideBox.classList.add('compact-guide');
+                guideBox.style.display = 'block';
+            }
+            if (relayContent) {
+                relayContent.style.display = 'block';
+                relayContent.querySelectorAll('p.main-title, p.submain-title').forEach((el) => {
+                    if (el.id !== 'strangerLabel') {
+                        el.remove();
+                    }
+                });
+            }
+            if (drawPrompt) {
+                drawPrompt.style.display = 'none';
+            }
+            if (funDisclaimer) {
+                funDisclaimer.style.display = 'block';
+            }
+        });
+
+        resetRelayBtn.addEventListener('click', () => {
+            localStorage.removeItem('Note');
+            localStorage.removeItem('Drawing');
+            relayCount = 1;
+            localStorage.removeItem('relayCount');
+            updateRelayStep();
+
+            if (prevSketch && prevSketchBox) {
+                prevSketch.src = '';
+                prevSketch.style.display = 'none';
+                prevSketchBox.style.display = 'none';
+            }
+            if (strangerLabelBox && strangerLabel) {
+                strangerLabel.style.display = 'none';
+                strangerLabelBox.style.display = 'none';
+            }
+            syncRelayView();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            strokeHistory.length = 0;
+            hasDrawn = false;
+            isErasing = false;
+            ctx.globalCompositeOperation = 'source-over';
+            eraseBtn.textContent = 'Erase';
+            resetUploadVisual();
+            setInputMode('sketch');
+            if (sketchHint) {
+                sketchHint.style.display = 'block';
+            }
+
+            if (guideBox) {
+                guideBox.classList.remove('compact-guide');
+            }
+            if (relayContent) {
+                relayContent.style.display = 'none';
+            }
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'block';
+            }
+        });
+
+        function saveSnapshot() {
+            strokeHistory.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        }
+
+        undoBtn.addEventListener('click', () => {
+            if (strokeHistory.length > 0) {
+                const lastSnapshot = strokeHistory.pop();
+                ctx.putImageData(lastSnapshot, 0, 0);
+                if (strokeHistory.length === 0) {
+                    hasDrawn = false;
+                    if (sketchHint) {
+                        sketchHint.style.display = 'block';
+                    }
+                }
+            }
+        });
+
+        uploadBox.addEventListener('click', () => {
+            if (imageUpload) {
+                imageUpload.click();
+            }
+        });
+
+        uploadBox.addEventListener('keydown', (e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && imageUpload) {
+                e.preventDefault();
+                imageUpload.click();
+            }
+        });
+
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    saveSnapshot();
+
+                    // Fill with white and draw image centered while keeping aspect ratio
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                    const drawWidth = img.width * scale;
+                    const drawHeight = img.height * scale;
+                    const offsetX = (canvas.width - drawWidth) / 2;
+                    const offsetY = (canvas.height - drawHeight) / 2;
+
+                    ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+                    ctx.restore();
+
+                    if (uploadPreview) {
+                        uploadPreview.src = event.target.result;
+                        uploadPreview.style.display = 'block';
+                    }
+                    if (uploadBoxText) {
+                        uploadBoxText.textContent = 'Click here to change file';
+                        uploadBoxText.style.marginTop = '0';
+                    }
+
+                    isErasing = false;
+                    ctx.globalCompositeOperation = 'source-over';
+                    eraseBtn.textContent = 'Erase';
+                    hasDrawn = true;
+                    if (sketchHint) {
+                        sketchHint.style.display = 'none';
+                    }
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            // Reset input so selecting the same file again still triggers 'change'
+            e.target.value = '';
+        });
+
+        colorPicker.addEventListener('input', () => {
+            isErasing = false;
+            ctx.globalCompositeOperation = 'source-over';
+            eraseBtn.textContent = 'Erase';
+            ctx.strokeStyle = colorPicker.value;
+        });
+
+        lineWidth.addEventListener('input', () => {
+            ctx.lineWidth = lineWidth.value;
+        });
+
+        eraseBtn.addEventListener('click', () => {
+            isErasing = !isErasing;
+            ctx.globalCompositeOperation = isErasing ? 'destination-out' : 'source-over';
+            eraseBtn.textContent = isErasing ? 'Draw' : 'Erase';
+        });
+
+        clearBtn.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            strokeHistory.length = 0;
+            hasDrawn = false;
+            isErasing = false;
+            ctx.globalCompositeOperation = 'source-over';
+            eraseBtn.textContent = 'Erase';
+            if (sketchHint) {
+                sketchHint.style.display = 'block';
+            }
+        });
+
+
+        if (savedSketch && prevSketch && prevSketchBox) {
+            prevSketch.src = savedSketch;
+            prevSketch.style.display = 'block';
+            prevSketchBox.style.display = 'block';
+        } else if (prevSketchBox) {
+            prevSketchBox.style.display = 'none';
+        }
+
+        syncRelayView();
+
+// Run when Submit is clicked
+        submitBtn.addEventListener('click', () => {
+            if (!hasDrawn) {
+                alert('Please draw something on the canvas before submitting.');
+                return;
+            }
+
+            // Save the drawing
+            const drawingData = canvas.toDataURL();
+            localStorage.setItem('Drawing', drawingData);
+
+            relayCount += 1;
+            localStorage.setItem('relayCount', String(relayCount));
+            updateRelayStep();
+
+            if (prevSketch && prevSketchBox) {
+                prevSketch.src = drawingData;
+                prevSketch.style.display = 'block';
+                prevSketchBox.style.display = 'block';
+            }
+
+            syncRelayView();
+
+            console.log('Drawing Data URL:', drawingData);
+            alert('Your drawing has been submitted!');
+
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            strokeHistory.length = 0;
+            hasDrawn = false;
+            resetUploadVisual();
+            setInputMode('sketch');
+            if (sketchHint) {
+                sketchHint.style.display = 'block';
+            }
+        });
+
+    </script>
+</body>
+</html>
