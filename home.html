@@ -305,7 +305,7 @@
 
     <!--JavaScript for Drawing-->
     <script>
-        const RELAY_DB_URL = 'https://sining-dugtungan-default-rtdb.firebaseio.com/relay.json';
+        const RELAY_DB_URL = 'https://sining-dugtungan-default-rtdb.asia-southeast1.firebasedatabase.app/relay.json';
 
         const canvas = document.getElementById('sketchPad');
         const ctx = canvas.getContext('2d');
@@ -390,6 +390,7 @@
         const uploadBox = document.getElementById('uploadBox');
         const uploadBoxText = document.getElementById('uploadBoxText');
         const uploadPreview = document.getElementById('uploadPreview');
+        const savedSketch = localStorage.getItem('Drawing');
         const clearBtn = document.getElementById('clearBtn');
         const imageUpload = document.getElementById('imageUpload');
         const colorPicker = document.getElementById('colorPicker');
@@ -403,32 +404,8 @@
         const funDisclaimer = document.getElementById('funDisclaimer');
         let isErasing = false;
         let currentMode = 'sketch';
-        let relayCount = 1;
+        let relayCount = parseInt(localStorage.getItem('relayCount')) || 1;
         let currentSharedDrawing = '';
-
-        function enterRelayScreen() {
-            if (welcomeScreen) {
-                welcomeScreen.style.display = 'none';
-            }
-            if (guideBox) {
-                guideBox.classList.add('compact-guide');
-                guideBox.style.display = 'block';
-            }
-            if (relayContent) {
-                relayContent.style.display = 'block';
-                relayContent.querySelectorAll('p.main-title, p.submain-title').forEach((el) => {
-                    if (el.id !== 'strangerLabel') {
-                        el.remove();
-                    }
-                });
-            }
-            if (drawPrompt) {
-                drawPrompt.style.display = 'none';
-            }
-            if (funDisclaimer) {
-                funDisclaimer.style.display = 'block';
-            }
-        }
 
         function setInputMode(mode) {
             currentMode = mode;
@@ -496,7 +473,24 @@
                     prevSketch.style.display = 'block';
                     prevSketchBox.style.display = 'block';
                 }
-                enterRelayScreen();
+                if (welcomeScreen) {
+                    welcomeScreen.style.display = 'none';
+                }
+                if (guideBox) {
+                    guideBox.classList.add('compact-guide');
+                    guideBox.style.display = 'block';
+                }
+                if (relayContent) {
+                    relayContent.style.display = 'block';
+                    relayContent.querySelectorAll('p.main-title, p.submain-title').forEach((el) => {
+                        if (el.id !== 'strangerLabel') {
+                            el.remove();
+                        }
+                    });
+                }
+                if (funDisclaimer) {
+                    funDisclaimer.style.display = 'block';
+                }
             } else {
                 currentSharedDrawing = '';
                 if (prevSketch && prevSketchBox) {
@@ -550,13 +544,36 @@
         loadSharedRelay();
 
         enterBtn.addEventListener('click', () => {
-            enterRelayScreen();
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
+            if (guideBox) {
+                guideBox.classList.add('compact-guide');
+                guideBox.style.display = 'block';
+            }
+            if (relayContent) {
+                relayContent.style.display = 'block';
+                relayContent.querySelectorAll('p.main-title, p.submain-title').forEach((el) => {
+                    if (el.id !== 'strangerLabel') {
+                        el.remove();
+                    }
+                });
+            }
+            if (drawPrompt) {
+                drawPrompt.style.display = 'none';
+            }
+            if (funDisclaimer) {
+                funDisclaimer.style.display = 'block';
+            }
         });
 
         resetRelayBtn.addEventListener('click', async () => {
             await clearSharedRelay();
             currentSharedDrawing = '';
+            localStorage.removeItem('Note');
+            localStorage.removeItem('Drawing');
             relayCount = 1;
+            localStorage.removeItem('relayCount');
             updateRelayStep();
 
             if (prevSketch && prevSketchBox) {
@@ -702,6 +719,16 @@
                 sketchHint.style.display = 'block';
             }
         });
+
+        if (savedSketch && prevSketch && prevSketchBox) {
+            prevSketch.src = savedSketch;
+            prevSketch.style.display = 'block';
+            prevSketchBox.style.display = 'block';
+        } else if (prevSketchBox) {
+            prevSketchBox.style.display = 'none';
+        }
+
+        syncRelayView();
 
 // Run when Submit is clicked
         submitBtn.addEventListener('click', async () => {
